@@ -7,7 +7,8 @@
     "license": "MIT",
     "scripts": {
         "start": "parcel src/index.html",
-        "pub": "cd dist && vercel --prod"
+        "build": "parcel build src/index.html",
+        "vercel-build": "parcel build src/index.html"
     },
     "devDependencies": {
         "parcel-bundler": "^1.12.5",

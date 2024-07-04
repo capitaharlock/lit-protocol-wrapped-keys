@@ -1,6 +1,14 @@
 {
-  "compilerOptions": {
-    "experimentalDecorators": true,
-    "jsxImportSource": "preact"
-  }
+    "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "strict": true,
+        "esModuleInterop": true,
+        "experimentalDecorators": true,
+        "jsxImportSource": "preact",
+        "outDir": "./dist",
+        "rootDir": "./src"
+    },
+    "include": ["src/**/*.ts", "src/**/*.tsx"],
+    "exclude": ["node_modules"]
 }
