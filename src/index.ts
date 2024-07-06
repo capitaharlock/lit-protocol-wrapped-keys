@@ -35,7 +35,7 @@ const loadFromLocalStorage = () => {
     }
 }
 
-export const connectLitNodeClientToCayenne = async () => {
+export const connectLitNodeClient = async () => {
     const litNodeClient = new LitNodeClient({
         alertWhenUnauthorized: false,
         litNetwork: LitNetwork.Manzano,
@@ -45,7 +45,7 @@ export const connectLitNodeClientToCayenne = async () => {
     globalState.litNodeClient = litNodeClient
 }
 
-export const connectLitContractsToCayenne = async () => {
+export const connectLitContracts = async () => {
     const litContracts = new LitContracts({
         signer: new ethers.Wallet(EOA_PRIVATE_KEY, new ethers.providers.JsonRpcProvider(LIT_CHAIN_RPC_URL)),
         debug: false,
@@ -136,6 +136,7 @@ export const permitLitActionToUsePkp = async () => {
 }
 
 export const getSessionSigsUsingPkpPubKeyAndCustomAuth = async () => {
+    const expirationTime = new Date(Date.now() + 60 * 1000)
     globalState.litActionSessionSigs = await globalState.litNodeClient.getLitActionSessionSigs({
         pkpPublicKey: globalState.pkp.publicKey,
         resourceAbilityRequests: [
@@ -151,15 +152,18 @@ export const getSessionSigsUsingPkpPubKeyAndCustomAuth = async () => {
             },
             sigName: "custom-auth-sig",
         },
+        expiration: expirationTime.toISOString(),
     })
 }
 
 export const pkpSignWithLitActionSessionSigs = async () => {
     try {
+        const expirationTime = new Date(Date.now() + 60 * 1000)
         const res = await globalState.litNodeClient.pkpSign({
             pubKey: globalState.pkp.publicKey,
             sessionSigs: globalState.litActionSessionSigs,
             toSign: ethers.utils.arrayify(ethers.utils.keccak256([1, 2, 3, 4, 5])),
+            expiration: expirationTime.toISOString(),
         })
         globalState.pkpSignResult = res
     } catch (e) {
@@ -184,8 +188,8 @@ export const insertWrappedKeys = async () => {
 }
 
 const stepsConfig = [
-    { step: 1, action: connectLitNodeClientToCayenne, description: "Connect LitNodeClient" },
-    { step: 2, action: connectLitContractsToCayenne, description: "Connect LitContracts" },
+    { step: 1, action: connectLitNodeClient, description: "Connect LitNodeClient" },
+    { step: 2, action: connectLitContracts, description: "Connect LitContracts" },
     { step: 3, action: mintPkpWithLitContracts, description: "Mint a PKP" },
     { step: 4, action: createCustomAuthMethod, description: "Create a custom auth method" },
     { step: 5, action: addPermittedAuthMethodToPkp, description: "Add Permitted Auth Method" },
@@ -222,7 +226,32 @@ if (typeof document !== "undefined") {
 
         const storedDataButton = document.createElement("button")
         storedDataButton.textContent = "Start with Stored Data"
+        const copiedData = `{
+        "pkp": {
+            "tokenId": "0xbbe1cec8e1fb45a742a4a26cbb533809f62310f3d7d73401637db7a000d748c7",
+            "publicKey": "0x043a104970c8f051b8b9ecf7194fcc14bd51e7a1a08afe3c840103bf5203532e4020eaf9a2370de1f8a3909ad1f28383298cb66b4d8dcb084f822f75ef4bf1b764",
+            "ethAddress": "0x5187C6a2C1ad443Ab958531d39dd5af7EB3823f1"
+        }
+        }`
+        //parseLitData(copiedData)
         storedDataButton.addEventListener("click", () => runAllSteps(true))
         document.body.appendChild(storedDataButton)
     })
+}
+
+// Add this function to parse and set the Lit data
+export const parseLitData = (inputData: string) => {
+    try {
+        const parsedData = JSON.parse(inputData)
+        globalState = {
+            ...globalState,
+            pkp: parsedData.pkp,
+            authUserKeys: parsedData.authUserKeys,
+            authMethod: parsedData.authMethod,
+            pkpSessionSigs: parsedData.pkpSessionSigs,
+        }
+        console.log("Lit Protocol data successfully parsed and added to global state.")
+    } catch (error) {
+        console.error("Failed to parse Lit Protocol data:", error)
+    }
 }
