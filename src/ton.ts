@@ -55,7 +55,9 @@ const litActionCode = `
     try {
         decryptedPrivateKey = await Lit.Actions.decryptToSingleNode({
             accessControlConditions,
-            chain: 1,
+            chain: 'ethereum',
+            ciphertext: null,
+            dataToEncryptHash: null,
             authSig: null,
         });
     } catch (error) {
@@ -78,6 +80,7 @@ export const executeLitAction = async (
     sessionSigs: any,
     wrappedKeysPkpAddress: string,
     wrappedKeysPublicKey: string,
+    wrappedKeysAddress: string,
     customCode?: string,
     dynamicAccessControlConditions?: any[],
 ) => {
